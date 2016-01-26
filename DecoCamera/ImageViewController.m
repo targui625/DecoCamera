@@ -51,28 +51,24 @@
 
 
 - (IBAction)lightSlider:(UISlider*)slider{
-    
+    // 輝度変更
     UIImage *inputImage = _editImage;
-    // CIImageへ変更
     CIImage *ciImage = [[CIImage alloc] initWithImage:inputImage];
-    // フィルタの作成
     CIFilter *ciFilter = [CIFilter filterWithName:@"CIColorControls"keysAndValues:kCIInputImageKey, ciImage,
                           @"inputBrightness",[NSNumber numberWithFloat:_slider.value],nil];
-    // 結果画像の取り出し
     CIImage* brightImage = [ciFilter outputImage];
-    // CIImageからUIImageに変換
     CIContext *ciContext = [CIContext contextWithOptions:nil];
     CGImageRef imgRef = [ciContext createCGImage:brightImage fromRect:[brightImage extent]];
     UIImage *resultImage = [UIImage imageWithCGImage:imgRef scale:1.0f orientation:UIImageOrientationUp];
     CGImageRelease(imgRef);
     _lastImage = resultImage;
-    
     // グレー維持
     if (self.isGray) {
         [self convertGray];
     }
     _imageView.image = _lastImage;
 }
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -90,6 +86,7 @@
     */
 }
 
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -106,13 +103,16 @@
 */
 
 - (IBAction)saveButtonAction:(id)sender {
+    // imageViewをsaveImageへ
     [self captureAction];
     SEL selector = @selector(onCompleteCapture:didFinishSavingWithError:contextInfo:);
     //画像を保存する
     UIImageWriteToSavedPhotosAlbum(_saveImage, self, selector, NULL);
     if(_saveImage == NULL){
-        NSLog(@"ダメです");}
-    else{NSLog(@"OK!!!!");}
+        NSLog(@"ダメです");
+    }
+    else{NSLog(@"OK!!!!");
+    }
 }
 
 -(void)captureAction{
@@ -147,7 +147,7 @@
 
 //画像保存完了時のセレクタ
 - (void)onCompleteCapture:(UIImage *)screenImage didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"保存終了" message:@"画像を保存しました" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"保存完了" message:@"画像を保存しました" preferredStyle:UIAlertControllerStyleAlert];
     
     // addActionした順に左から右にボタンが配置されます
     [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -218,21 +218,21 @@
 -(void)convertGray{
     UIImage *image = _lastImage;
     CGRect imageRect = (CGRect){0.0, 0.0, image.size.width, image.size.height};
-    // CoreGraphicsのモノクロ色空間を準備します
+    // モノクロ色空間
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
-    // ビットマップコンテキストを作りサイズと色空間を設定します
+    // サイズと色空間の設定
     CGContextRef context = CGBitmapContextCreate(nil, image.size.width, image.size.height, 8, 0, colorSpace, kCGImageAlphaNone);
-    // ビットマップコンテキストに画像を描画します
+    // 画像を描画
     CGContextDrawImage(context, imageRect, [image CGImage]);
-    // ビットマップコンテキストに描画された画像を取得します
+    // 描画された画像を取得
     CGImageRef imageRef = CGBitmapContextCreateImage(context);
-    // 取得した画像からUIImageを作ります
+    // 取得した画像からUIImageを作る
     UIImage *grayImage = [UIImage imageWithCGImage:imageRef];
-    // 準備した色空間、ビットマップコンテキスト、取得した画像をメモリから解放します
+    // メモリ解放
     CGColorSpaceRelease(colorSpace);
     CGContextRelease(context);
     CFRelease(imageRef);
-    // Storyboard上のUIImageViewに画像を描画
+    // UIImageViewに画像を描画
     _lastImage = grayImage;
     _imageView.image = _lastImage;
 }
